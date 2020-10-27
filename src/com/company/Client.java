@@ -4,13 +4,19 @@ import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
 import java.net.Socket;
+import java.util.Scanner;
 
 public class Client {
 
     public static void main(String[] args) throws IOException {
+        Scanner reader = new Scanner(System.in); //set up user input
+
         Socket sock = new Socket("localhost", 42069);
         DataOutputStream dos = new DataOutputStream(sock.getOutputStream());
-        dos.writeUTF("wubba");//prepare message
+        System.out.println("Connection established");
+        System.out.print("\nEnter message for server: ");
+        String message = reader.nextLine();
+        dos.writeUTF(message);//prepare message
         dos.flush(); //send message
 
         //Part 2 code
