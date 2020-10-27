@@ -11,26 +11,67 @@ public class Server{
 
 
     public static void main(String[] args) throws IOException{
-        Scanner reader = new Scanner(System.in);
+        ServerSocket ss = new ServerSocket(42069); //set up server socket
+        Socket s;
 
-       ServerSocket ss = new ServerSocket(42069); //set up server socket
-        System.out.println("Awaiting connection...");
-       Socket s = ss.accept();  //listen and accept connection
-        System.out.println("Connection established");
-       DataInputStream dis = new DataInputStream(s.getInputStream()); //setup input stream
-        String output = dis.readUTF(); //retreive message
-        System.out.println("Message received: " + output); //display message
-        System.out.print("\nHow would you like to respond?  ");
-        String response = reader.nextLine();
+        while(true){ //keep the server alive
+            System.out.println("Awaiting connection...");
+            s = ss.accept(); //listen for connection
+            System.out.println("Connection established");
+
+            //Set up your IO streams
+            DataInputStream dis = new DataInputStream(s.getInputStream()); //setup input stream
+            DataOutputStream dos = new DataOutputStream(s.getOutputStream()); //establish an output stream
+
+            System.out.println("setting up thread");
+
+            Thread client = new ClientHandler(s,dis,dos);
+            client.start();
+
+        }
+        //ss.close();  //close connection
+    }
+
+/*
 
 
-        //part 2 code
-        DataOutputStream dos = new DataOutputStream(s.getOutputStream()); //establish an output stream
-        dos.writeUTF(response); //prepare message
-        dos.flush(); //send message
-        System.out.println("Response sent!");
 
-        ss.close();  //close connection
+ */
 
+}
+
+class ClientHandler extends Thread{
+    DataInputStream dis;
+    DataOutputStream dos;
+    Socket s;
+    Scanner reader = new Scanner(System.in);
+
+    ClientHandler(Socket s, DataInputStream dis, DataOutputStream dos){
+        this.s = s;
+        this.dis = dis;
+        this.dos = dos;
+    }
+
+    public void run() {
+        try {
+            String output = dis.readUTF(); //retreive message
+            System.out.println("Message received: " + output); //display message
+            System.out.print("\nHow would you like to respond?  ");
+            String response = reader.nextLine();
+
+
+            //part 2 code
+            dos.writeUTF(response); //prepare message
+            dos.flush(); //send message
+            System.out.println("Response sent!");
+
+            //----- close everything plz
+            dos.close();
+            dis.close();
+        }
+        catch(IOException e){
+            System.out.println("Something went wrong with the IO Streams");
+            e.printStackTrace();
+        }
     }
 }

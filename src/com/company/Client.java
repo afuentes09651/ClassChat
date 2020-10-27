@@ -10,7 +10,6 @@ public class Client {
 
     public static void main(String[] args) throws IOException {
         Scanner reader = new Scanner(System.in); //set up user input
-
         Socket sock = new Socket("localhost", 42069);
         DataOutputStream dos = new DataOutputStream(sock.getOutputStream());
         System.out.println("Connection established");
@@ -30,6 +29,9 @@ public class Client {
             }
         }
 
+        //------ close everything plz
+        dos.close();
+        dis.close();
         sock.close(); //close connection
     }
 }
