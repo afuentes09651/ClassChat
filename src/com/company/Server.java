@@ -5,9 +5,11 @@ import java.io.DataOutputStream;
 import java.io.IOException;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.util.ArrayList;
 import java.util.Scanner;
 
 public class Server{
+    static ArrayList<Socket> connections = new ArrayList<Socket>(); //used to broadcast to all sockets
 
 
     public static void main(String[] args) throws IOException{
@@ -19,6 +21,7 @@ public class Server{
             System.out.println("Awaiting connection...");
             s = ss.accept(); //listen for connection
             System.out.println("Connection established");
+            connections.add(s); //add socket to the broadcast list
 
             //Set up your IO streams
             DataInputStream dis = new DataInputStream(s.getInputStream()); //setup input stream
@@ -31,15 +34,9 @@ public class Server{
             client.start();
 
         }
+        //connections.remove(s);
         //ss.close();  //close connection
     }
-
-/*
-
-
-
- */
-
 }
 
 class ClientHandler extends Thread{
