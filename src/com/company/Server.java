@@ -13,6 +13,7 @@ public class Server{
     public static void main(String[] args) throws IOException{
         ServerSocket ss = new ServerSocket(42069); //set up server socket
         Socket s;
+        int clientCount = 0;
 
         while(true){ //keep the server alive
             System.out.println("Awaiting connection...");
@@ -23,9 +24,10 @@ public class Server{
             DataInputStream dis = new DataInputStream(s.getInputStream()); //setup input stream
             DataOutputStream dos = new DataOutputStream(s.getOutputStream()); //establish an output stream
 
-            System.out.println("setting up thread");
+            System.out.println("setting up thread" + clientCount + "...");
+            clientCount++;
 
-            Thread client = new ClientHandler(s,dis,dos);
+            Thread client = new ClientHandler(s,dis,dos, clientCount);
             client.start();
 
         }
@@ -45,19 +47,33 @@ class ClientHandler extends Thread{
     DataOutputStream dos;
     Socket s;
     Scanner reader = new Scanner(System.in);
+    int cc;
 
-    ClientHandler(Socket s, DataInputStream dis, DataOutputStream dos){
+    ClientHandler(Socket s, DataInputStream dis, DataOutputStream dos, int cc){
         this.s = s;
         this.dis = dis;
         this.dos = dos;
+        this.cc = cc;
     }
 
     public void run() {
+
+        if(cc % 2 == 0){
+            try {
+                System.out.println(cc + " is sleeping");
+                sleep(50000);
+                System.out.println(cc + " just woke up");
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+
+
+        }
         try {
             String output = dis.readUTF(); //retreive message
             System.out.println("Message received: " + output); //display message
             System.out.print("\nHow would you like to respond?  ");
-            String response = reader.nextLine();
+            String response =   "hello there " + cc;        //reader.nextLine();
 
 
             //part 2 code
