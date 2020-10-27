@@ -1,6 +1,7 @@
 package com.company;
 
 import java.io.DataInputStream;
+import java.io.DataOutputStream;
 import java.io.IOException;
 import java.net.ServerSocket;
 import java.net.Socket;
@@ -17,6 +18,12 @@ public class Server{
        DataInputStream dis = new DataInputStream(s.getInputStream()); //setup input stream
         String output = dis.readUTF(); //retreive message
         System.out.println("Message received: " + output); //display message
+
+        //part 2 code
+        DataOutputStream dos = new DataOutputStream(s.getOutputStream()); //establish an output stream
+        dos.writeUTF("Server says hi back!"); //prepare message
+        dos.flush(); //send message
+
         ss.close();  //close connection
 
     }
