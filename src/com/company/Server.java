@@ -56,24 +56,12 @@ class ClientHandler extends Thread{
         this.cc = cc;
     }
 
-    public void run() {
-
-        if(cc % 2 == 0){
-            try {
-                System.out.println(cc + " is sleeping");
-                sleep(50000);
-                System.out.println(cc + " just woke up");
-            } catch (InterruptedException e) {
-                e.printStackTrace();
-            }
-
-
-        }
+    public void run() { //Commence the client thread
         try {
             String output = dis.readUTF(); //retreive message
             System.out.println("Message received: " + output); //display message
             System.out.print("\nHow would you like to respond?  ");
-            String response =   "hello there " + cc;        //reader.nextLine();
+            String response =   reader.nextLine();
 
 
             //part 2 code
