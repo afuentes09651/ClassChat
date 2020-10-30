@@ -9,6 +9,7 @@ import java.util.ArrayList;
 import java.util.Scanner;
 
 public class Server{
+
     static ArrayList<Socket> connections = new ArrayList<Socket>(); //used to broadcast to all sockets
 
 
@@ -27,7 +28,7 @@ public class Server{
             DataInputStream dis = new DataInputStream(s.getInputStream()); //setup input stream
             DataOutputStream dos = new DataOutputStream(s.getOutputStream()); //establish an output stream
 
-            System.out.println("setting up thread" + clientCount + "...");
+            System.out.println("setting up thread " + clientCount + "...");
             clientCount++;
 
             Thread client = new ClientHandler(s,dis,dos, clientCount);
@@ -37,42 +38,98 @@ public class Server{
         //connections.remove(s);
         //ss.close();  //close connection
     }
-}
 
-class ClientHandler extends Thread{
-    DataInputStream dis;
-    DataOutputStream dos;
-    Socket s;
-    Scanner reader = new Scanner(System.in);
-    int cc;
 
-    ClientHandler(Socket s, DataInputStream dis, DataOutputStream dos, int cc){
-        this.s = s;
-        this.dis = dis;
-        this.dos = dos;
-        this.cc = cc;
+
+    //------Client Listener class
+
+    static boolean checkConnection(Socket s){
+        if(s.isClosed()){
+            System.out.println("Connection no longer exists");
+            connections.remove(s);
+            return true;
+        }
+        return false;
     }
 
-    public void run() { //Commence the client thread
-        try {
-            String output = dis.readUTF(); //retreive message
-            System.out.println("Message received: " + output); //display message
-            System.out.print("\nHow would you like to respond?  ");
-            String response =   reader.nextLine();
 
 
-            //part 2 code
-            dos.writeUTF(response); //prepare message
-            dos.flush(); //send message
-            System.out.println("Response sent!");
+//-------- CLient Handler Class
 
-            //----- close everything plz
-            dos.close();
-            dis.close();
+    static class ClientListener extends Thread{
+
+        DataInputStream dis;
+        Socket s;
+
+        ClientListener(Socket s, DataInputStream dis){
+            this.s = s;
+            this.dis = dis;
         }
-        catch(IOException e){
-            System.out.println("Something went wrong with the IO Streams");
-            e.printStackTrace();
+
+        public void run(){
+            while(true){
+
+                try{
+                    if(checkConnection(s)){
+                        break;
+                    }
+                    String output = dis.readUTF(); //retreive message
+                    System.out.println("Message received: " + output); //display message
+                }
+                catch(IOException e){
+                    System.out.println("Connection Error at Client Listener");
+                }
+            }
+        }
+    }
+
+    static class ClientHandler extends Thread{
+        DataInputStream dis;
+        DataOutputStream dos;
+        Socket s;
+        Scanner reader = new Scanner(System.in);
+        int cc;
+        ClientListener ch;
+
+        ClientHandler(Socket s, DataInputStream dis, DataOutputStream dos, int cc){
+            this.s = s;
+            this.dis = dis;
+            this.dos = dos;
+            this.cc = cc;
+            ch = new ClientListener(s,dis);
+            ch.start();
+        }
+
+        public void run() { //Commence the client thread
+            try {
+                System.out.print("\nHow would you like to respond?  ");
+                String response =   reader.nextLine();
+
+
+                //part 2 code
+                dos.writeUTF(response); //prepare message
+                dos.flush(); //send message
+                System.out.println("Response sent!");
+
+                //----- close everything plz
+                dos.close();
+                dis.close();
+            }
+            catch(IOException e){
+                System.out.println("Something went wrong with the IO Streams");
+            }
+        }
+    }
+
+    static class Broadcaster extends Thread{
+
+        public void run(){
+            while(true){
+
+            }
         }
     }
 }
+
+
+

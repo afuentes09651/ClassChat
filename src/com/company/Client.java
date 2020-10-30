@@ -13,15 +13,16 @@ public class Client extends Thread {
         Socket sock = new Socket("localhost", 42069);
        DataOutputStream dos = new DataOutputStream(sock.getOutputStream());
         System.out.println("Connection established");
-        System.out.print("\nEnter message for server: ");
-        String message = reader.nextLine();
-        dos.writeUTF(message);//prepare message
-        dos.flush(); //send message
 
         //Part 2 code
         DataInputStream dis = new DataInputStream(sock.getInputStream()); //make an input stream
         Thread listener = new ResponseListener(dis);
         listener.start();
+
+        System.out.print("\nEnter message for server: ");
+        String message = reader.nextLine();
+        dos.writeUTF(message);//prepare message
+        dos.flush(); //send message
 
 
         //------ close everything plz
@@ -31,6 +32,10 @@ public class Client extends Thread {
     }
 
     //Response Listener
+}
+
+class MessageHandler extends Thread{
+
 }
 
 class ResponseListener extends Thread{
