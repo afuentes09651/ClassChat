@@ -90,11 +90,14 @@ class ServerCaller extends Thread {
     PrintWriter writer;
     String message;
     Scanner reader = new Scanner(System.in);
+    BufferedReader nameCheck;
 
     ServerCaller(Socket sock) {
         try {
             OutputStream output = sock.getOutputStream();
             writer = new PrintWriter(output, true);
+            InputStream input = sock.getInputStream();
+            nameCheck = new BufferedReader(new InputStreamReader(input));
         } catch (IOException ex) {
             System.out.println("Error getting output stream: " + ex.getMessage());
             ex.printStackTrace();
@@ -102,9 +105,22 @@ class ServerCaller extends Thread {
     }
 
     public void run() {
-        System.out.print("Enter your name: ");
-        String userName = reader.nextLine();
-        writer.println(userName);
+        String okName = "";
+        do {
+
+            if (okName.equals("INVALID")) {
+                System.out.println("Name has already been taken...");
+            }
+
+            System.out.print("Enter your name: ");
+            String userName = reader.nextLine();
+            writer.println(userName);
+            try {
+                okName = nameCheck.readLine();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        } while (okName.equals("INVALID"));
 
         while (true) {
             message = reader.nextLine();

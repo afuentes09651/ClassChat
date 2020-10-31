@@ -46,6 +46,33 @@ public class Server {
         //ss.close();  //close connection
     }
 
+    //
+    void dm(String message, String to, String from) {
+        if (clients.containsKey(to)) {
+            from = "DM From " + from;
+            clients.get(to).sendMessage(message, from);
+        } else {
+            clients.get(from).sendMessage("ERROR - Invalid recipient", "System");
+        }
+    }
+
+    void sendHelper(String message, String from) {
+        String[] strings;
+
+        if (message.indexOf(':') != -1) { //if we have a dm
+            strings = message.split(":", 2);
+            strings[0] = strings[0].toLowerCase(); //to make things simpler
+            if (!strings[0].equals("all")) {
+                dm(strings[1], strings[0], from);
+            } else {
+                broadcast(message, from);
+            }
+        } else {
+            broadcast(message, from);
+        }
+
+    }
+
     void broadcast(String message, String from) {
         for (Map.Entry<String, ClientHandler> user : server.clients.entrySet()) {
             if (!user.getKey().equals(from)) {
@@ -84,10 +111,23 @@ class ClientHandler extends Thread {
     //we will start a thread to listen for the user request and message
     public void run() { //Commence the client thread
             try {
+                boolean validName = false;
 
-                String name = reader.readLine(); //get the username
-                System.out.println("Name is " + name);
-                server.clients.put(name, this); //add connection
+                do {
+                    name = reader.readLine(); //get the username
+                    System.out.println("User selected username " + name);
+                    if (server.clients.containsKey(name)) {
+                        writer.println("INVALID");
+                    } else {
+                        validName = true;
+                        writer.println("Accepted");
+                    }
+                }
+                while (!validName);
+
+
+                //i added to lowercase to make things easier
+                server.clients.put(name.toLowerCase(), this); //add connection
 
                 listUsers();
 
@@ -101,20 +141,18 @@ class ClientHandler extends Thread {
 
                 while (!sock.isClosed()) {
                     message = reader.readLine();
-                    server.broadcast(message, name);
+                    server.sendHelper(message, name);
                 }
 
 
-                server.clients.remove(name);
-                sock.close();
-                System.out.println(name + " has left the server");
-                String quit = name + " has left the server";
-                server.broadcast(quit, name);
 
             } catch (Exception e) {
                 System.out.println("There was an issue with the Client Handler for " + name);
-
-
+                server.clients.remove(name);
+                System.out.println(name + " has left the server");
+                String quit = name + " has left the server";
+                server.broadcast(quit, name);
+                listUsers();
             }
     }
 
