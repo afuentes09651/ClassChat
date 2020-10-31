@@ -1,8 +1,6 @@
 package com.company;
 
-import java.io.DataInputStream;
-import java.io.DataOutputStream;
-import java.io.IOException;
+import java.io.*;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.HashMap;
@@ -18,6 +16,7 @@ class ServerExe {
 
 public class Server {
 
+    //usernames are the key and it like consolidates everything
     Map<String, ClientHandler> clients = new HashMap<>();
     Server server = this; //idk how else to like
 
@@ -51,16 +50,14 @@ public class Server {
         //ss.close();  //close connection
     }
 
-    String listUsers() {
-        String result = "";
-
-        for (Map.Entry<String, ClientHandler> entry : clients.entrySet()) {
-            result += "\n" + entry.getKey();
+    void broadcast(String message, ClientHandler from) {
+        for (Map.Entry<String, ClientHandler> user : server.clients.entrySet()) {
+            if (!user.getValue().equals(from.sock)) {
+                user.getValue().sendMessage(message, from.name);
+            }
         }
-
-
-        return result;
     }
+
 }
 
 
@@ -71,13 +68,20 @@ class ClientHandler extends Thread {
     Socket sock;
     Server server;
     String name = "unknown";
-    DataInputStream dis;
-    DataOutputStream dos;
+    BufferedReader reader;
+    PrintWriter writer;
+    String message;
 
 
-    ClientHandler(Socket sock, Server server) {
+    ClientHandler(Socket sock, Server server) throws IOException {
         this.sock = sock;
         this.server = server;
+
+        InputStream input = sock.getInputStream();
+        reader = new BufferedReader(new InputStreamReader(input));
+
+        OutputStream output = sock.getOutputStream();
+        writer = new PrintWriter(output, true);
 
     }
 
@@ -85,19 +89,52 @@ class ClientHandler extends Thread {
     public void run() { //Commence the client thread
             try {
 
-                //set up the streams
-                dis = (DataInputStream) sock.getInputStream();
-                dos = (DataOutputStream) sock.getOutputStream();
+                String name = reader.readLine(); //get the username
+                server.clients.put(name, this); //add connection
 
-                dos.writeUTF("Welcome to the chat server!");
-                dos.writeUTF("\nEnter your username: ");
+                listUsers();
 
+                writer.println("Rules are simple:" +
+                        "\nIn order to DM, you must specify user like: NAME: MESSAGE" +
+                        "\nOtherwise, please type: ALL: MESSAGE to broadcast message to users");
+
+                String newUser = name + " has joined the chat!";
+                server.broadcast(newUser, this);
+
+                while (!sock.isClosed()) {
+                    message = reader.readLine();
+                    server.broadcast(message, this);
+                }
+
+
+                server.clients.remove(name);
+                sock.close();
+                System.out.println(name + " has left the server");
+                String quit = name + " has left the server";
+                server.broadcast(quit, this);
 
             } catch (Exception e) {
                 System.out.println("There was an issue with the Client Handler for " + name);
+
+
             }
-        }
     }
 
+
+    //convenience method to easily print the users
+    void listUsers() {
+        String result = "Available users: ";
+
+        for (Map.Entry<String, ClientHandler> entry : server.clients.entrySet()) {
+            result += "\n" + entry.getKey();
+        }
+        writer.println(result);
+    }
+
+
+    void sendMessage(String message, String from) {
+        writer.println(from + ": " + message);
+    }
+}
 
 

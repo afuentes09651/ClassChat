@@ -8,7 +8,7 @@ import java.util.Scanner;
 
 public class Client extends Thread {
 
-    public static void main(String[] args) throws IOException {
+    public void main() throws Exception {
         Scanner reader = new Scanner(System.in); //set up user input
         Socket sock = new Socket("localhost", 42069);
        DataOutputStream dos = new DataOutputStream(sock.getOutputStream());
@@ -74,12 +74,8 @@ class ResponseListener extends Thread{
 
     public void run() {
         try {
+            System.out.println("\nReceived message: " + dis.readUTF());
 
-            while (true) {
-                if (dis.available() > 0) {
-                    System.out.println("Received message: " + dis.readUTF());
-                }
-            }
 
         } catch (IOException e) {
             System.out.println("There was an error in the Response Listener");
