@@ -33,11 +33,7 @@ public class Server {
             System.out.println("Awaiting connection...");
             s = ss.accept(); //listen for connection
             System.out.println("Connection established");
-            connections.add(s); //add socket to the broadcast list
 
-            //Set up your IO streams
-            DataInputStream dis = new DataInputStream(s.getInputStream()); //setup input stream
-            DataOutputStream dos = new DataOutputStream(s.getOutputStream()); //establish an output stream
 
             System.out.println("setting up thread " + clientCount + "...");
             clientCount++;
@@ -52,7 +48,7 @@ public class Server {
 
     void broadcast(String message, ClientHandler from) {
         for (Map.Entry<String, ClientHandler> user : server.clients.entrySet()) {
-            if (!user.getValue().equals(from.sock)) {
+            if (!user.getValue().equals(from)) {
                 user.getValue().sendMessage(message, from.name);
             }
         }

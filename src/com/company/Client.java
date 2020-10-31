@@ -1,8 +1,6 @@
 package com.company;
 
-import java.io.DataInputStream;
-import java.io.DataOutputStream;
-import java.io.IOException;
+import java.io.*;
 import java.net.Socket;
 import java.util.Scanner;
 
@@ -62,23 +60,57 @@ class ResponseListener extends Thread{
     }
 }
 
-class ResponseListener extends Thread{
+class ResponseListener extends Thread {
+    BufferedReader reader;
 
-    Socket s;
-    DataInputStream dis;
-
-    ResponseListener(Socket s, DataInputStream dis){
-        this.s = s;
-        this.dis = dis;
+    ResponseListener(Socket sock) {
+        try {
+            InputStream input = sock.getInputStream();
+            reader = new BufferedReader(new InputStreamReader(input));
+        } catch (IOException ex) {
+            System.out.println("Error getting input stream: " + ex.getMessage());
+            ex.printStackTrace();
+        }
     }
 
     public void run() {
-        try {
-            System.out.println("\nReceived message: " + dis.readUTF());
-
-
-        } catch (IOException e) {
-            System.out.println("There was an error in the Response Listener");
+        while (true) {
+            try {
+                System.out.println(reader.readLine());
+            } catch (IOException e) {
+                System.out.println("There has been an error with the Response Listener");
+                break;
+            }
         }
+    }
+}
+
+
+class ServerCaller extends Thread {
+    PrintWriter writer;
+    String message;
+    Scanner reader = new Scanner(System.in);
+
+    ServerCaller(Socket sock) {
+        try {
+            OutputStream output = sock.getOutputStream();
+            writer = new PrintWriter(output, true);
+        } catch (IOException ex) {
+            System.out.println("Error getting output stream: " + ex.getMessage());
+            ex.printStackTrace();
+        }
+    }
+
+    public void run() {
+        System.out.print("Enter your name: ");
+        String userName = reader.nextLine();
+        writer.println(userName);
+
+        while (true) {
+            message = reader.nextLine();
+            writer.println(message);
+            System.out.println("You: " + message);
+        }
+
     }
 }
