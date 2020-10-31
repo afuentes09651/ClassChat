@@ -46,10 +46,10 @@ public class Server {
         //ss.close();  //close connection
     }
 
-    void broadcast(String message, ClientHandler from) {
+    void broadcast(String message, String from) {
         for (Map.Entry<String, ClientHandler> user : server.clients.entrySet()) {
-            if (!user.getValue().equals(from)) {
-                user.getValue().sendMessage(message, from.name);
+            if (!user.getKey().equals(from)) {
+                user.getValue().sendMessage(message, from);
             }
         }
     }
@@ -86,6 +86,7 @@ class ClientHandler extends Thread {
             try {
 
                 String name = reader.readLine(); //get the username
+                System.out.println("Name is " + name);
                 server.clients.put(name, this); //add connection
 
                 listUsers();
@@ -95,11 +96,12 @@ class ClientHandler extends Thread {
                         "\nOtherwise, please type: ALL: MESSAGE to broadcast message to users");
 
                 String newUser = name + " has joined the chat!";
-                server.broadcast(newUser, this);
+                System.out.println("THIS name is " + name);
+                server.broadcast(newUser, name);
 
                 while (!sock.isClosed()) {
                     message = reader.readLine();
-                    server.broadcast(message, this);
+                    server.broadcast(message, name);
                 }
 
 
@@ -107,7 +109,7 @@ class ClientHandler extends Thread {
                 sock.close();
                 System.out.println(name + " has left the server");
                 String quit = name + " has left the server";
-                server.broadcast(quit, this);
+                server.broadcast(quit, name);
 
             } catch (Exception e) {
                 System.out.println("There was an issue with the Client Handler for " + name);
