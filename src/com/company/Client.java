@@ -61,3 +61,28 @@ class ResponseListener extends Thread{
         }
     }
 }
+
+class ResponseListener extends Thread{
+
+    Socket s;
+    DataInputStream dis;
+
+    ResponseListener(Socket s, DataInputStream dis){
+        this.s = s;
+        this.dis = dis;
+    }
+
+    public void run() {
+        try {
+
+            while (true) {
+                if (dis.available() > 0) {
+                    System.out.println("Received message: " + dis.readUTF());
+                }
+            }
+
+        } catch (IOException e) {
+            System.out.println("There was an error in the Response Listener");
+        }
+    }
+}

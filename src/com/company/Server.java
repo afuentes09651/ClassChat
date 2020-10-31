@@ -13,10 +13,11 @@ public class Server{
     static ArrayList<Socket> connections = new ArrayList<Socket>(); //used to broadcast to all sockets
 
 
-    public static void main(String[] args) throws IOException{
+    public void main(String [] args) throws IOException{
         ServerSocket ss = new ServerSocket(42069); //set up server socket
         Socket s;
         int clientCount = 0;
+
 
         while(true){ //keep the server alive
             System.out.println("Awaiting connection...");
@@ -31,7 +32,7 @@ public class Server{
             System.out.println("setting up thread " + clientCount + "...");
             clientCount++;
 
-            Thread client = new ClientHandler(s,dis,dos, clientCount);
+            Thread client = new ClientHandler(s, server);
             client.start();
 
         }
@@ -40,92 +41,30 @@ public class Server{
     }
 
 
+    //The Client Handler will be taking care of things for now on for each client.
+//It will take the info from the socket and give it to the server to broadcast
+    class ClientHandler extends Thread{
 
-    //------Client Listener class
-
-    static boolean checkConnection(Socket s){
-        if(s.isClosed()){
-            System.out.println("Connection no longer exists");
-            connections.remove(s);
-            return true;
-        }
-        return false;
-    }
+        Socket sock;
+        Server server;
+        String name = "unkown";
 
 
+        ClientHandler(Socket sock, Server server){
+            this.sock = sock;
+            this.server = server;
 
-//-------- CLient Handler Class
-
-    static class ClientListener extends Thread{
-
-        DataInputStream dis;
-        Socket s;
-
-        ClientListener(Socket s, DataInputStream dis){
-            this.s = s;
-            this.dis = dis;
         }
 
-        public void run(){
-            while(true){
-
-                try{
-                    if(checkConnection(s)){
-                        break;
-                    }
-                    String output = dis.readUTF(); //retreive message
-                    System.out.println("Message received: " + output); //display message
-                }
-                catch(IOException e){
-                    System.out.println("Connection Error at Client Listener");
-                }
-            }
-        }
-    }
-
-    static class ClientHandler extends Thread{
-        DataInputStream dis;
-        DataOutputStream dos;
-        Socket s;
-        Scanner reader = new Scanner(System.in);
-        int cc;
-        ClientListener ch;
-
-        ClientHandler(Socket s, DataInputStream dis, DataOutputStream dos, int cc){
-            this.s = s;
-            this.dis = dis;
-            this.dos = dos;
-            this.cc = cc;
-            ch = new ClientListener(s,dis);
-            ch.start();
-        }
-
+        //we will start a thread to listen for the user request and message
         public void run() { //Commence the client thread
-            try {
-                System.out.print("\nHow would you like to respond?  ");
-                String response =   reader.nextLine();
+            try{
 
 
-                //part 2 code
-                dos.writeUTF(response); //prepare message
-                dos.flush(); //send message
-                System.out.println("Response sent!");
 
-                //----- close everything plz
-                dos.close();
-                dis.close();
-            }
-            catch(IOException e){
-                System.out.println("Something went wrong with the IO Streams");
-            }
-        }
-    }
 
-    static class Broadcaster extends Thread{
-
-        public void run(){
-            while(true){
-
+            } catch (Exception e) {
+                System.out.println("There was an issue with the Client Handler for " + name);
             }
         }
     }
